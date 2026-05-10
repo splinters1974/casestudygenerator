@@ -92,7 +92,7 @@ function loadFromStorage() {
             'customerName','customerRole','customerQuote',
             'supplierName','supplierRole','supplierQuote',
             'challenge','solution','results',
-            'contentLength','audienceType'
+            'contentLength','audienceType','contentFocus','customTargets'
         ];
         fields.forEach(id => {
             const el = document.getElementById(id);
@@ -114,6 +114,7 @@ function loadFromStorage() {
     const storedKey = localStorage.getItem(API_KEY_STORAGE);
     if (storedKey) document.getElementById('apiKeyInput').value = storedKey;
     updateTabLabels();
+    updateFocusField();
 }
 
 // ── Image Handling ────────────────────────────────────────────────────────────
@@ -231,6 +232,11 @@ async function generateContent() {
     }
 }
 
+function updateFocusField() {
+    const isTargets = document.getElementById('contentFocus').value === 'targets';
+    document.getElementById('customTargetsGroup').style.display = isTargets ? 'block' : 'none';
+}
+
 function updateTabLabels() {
     const isInternal = document.getElementById('audienceType').value === 'internal';
     const labels = isInternal
@@ -251,6 +257,46 @@ function buildPrompt() {
         medium: { slide: 50, pdfSec: '2–3 sentences',   intro: '150–180', ch: '180–220', sol: '220–260', res: '170–210' },
         large:  { slide: 60, pdfSec: '4–5 sentences',   intro: '250–300', ch: '350–400', sol: '400–450', res: '300–350' }
     }[length];
+
+    const focus = get('contentFocus') || 'general';
+    const customTargets = get('customTargets').trim();
+
+    const focusBlocks = {
+        general: `CONTENT FOCUS: General
+- Balanced treatment — weave financial, environmental, and operational themes proportionally
+- Lead each section with whichever outcome is most impressive for that context`,
+
+        finance: `CONTENT FOCUS: Finance Led
+- Every section opens with the financial headline: payback period, annual £ saving, ROI %
+- Frame the challenge as financial exposure or missed savings opportunity
+- Frame the solution as an investment decision with a clear expected return
+- Frame results as: capital recovered in X years, ongoing annual return of £Y
+- Carbon and operational benefits are mentioned but always positioned as secondary gains that strengthen the financial case`,
+
+        resilience: `CONTENT FOCUS: Resilience Led
+- Every section opens with the energy security and operational continuity angle
+- Frame the challenge as vulnerability: exposure to volatile energy prices, grid dependency, operational risk, supply disruption
+- Frame the solution as risk mitigation: on-site generation, predictable costs, reduced grid reliance, operational independence
+- Frame results in terms of reduced exposure, locked-in energy costs, and continuity assurance
+- Financial savings support the resilience case but never lead it`,
+
+        carbon: `CONTENT FOCUS: Carbon Led
+- Every section opens with the carbon and sustainability headline: tonnes CO₂ saved, equivalent metrics (e.g. cars off the road, trees planted, homes powered)
+- Frame the challenge as carbon exposure and the gap between current emissions and sustainability commitments
+- Frame the solution as the pathway to a reduced carbon footprint and net zero progress
+- Frame results: lead with CO₂ reduction, percentage decrease in carbon footprint, contribution to net zero journey
+- Financial savings are present but positioned as an additional benefit, not the primary story`,
+
+        targets: `CONTENT FOCUS: Targets Led
+- Frame the entire case study as demonstrable progress against specific standards, regulations, and commitments
+- Reference relevant frameworks where applicable: ISO 50001, ESOS (Phase 3/4), Scope 1/2/3 emissions reductions, Science Based Targets (SBTi), net zero pledges, Carbon Reduction Plans, PPN 06/21
+- Show how this project contributes to or achieves specific compliance milestones
+- Use targets language throughout: "meeting obligations under", "on track for", "demonstrating compliance with", "evidence for", "contributing to"
+- Frame the challenge as the gap between current position and target commitments
+- Frame results as verified progress against named targets${customTargets ? `\n- Client-specific targets and commitments to reference prominently:\n${customTargets}` : ''}`
+    };
+
+    const focusBlock = focusBlocks[focus] || focusBlocks.general;
 
     const audienceBlock = isInternal
         ? `AUDIENCE: Internal stakeholders — senior management, finance, operations
@@ -293,6 +339,8 @@ Slide 5 — CTA: invite similar organisations to start the conversation with Ame
 Generate three content formats from the project data below. Every version must follow a clear narrative arc: client context → before-state (challenge) → solution journey → measurable results → social proof → call to action. Create vivid before/after contrast throughout — the gap between pain state and transformed state is what makes case studies compelling.
 
 ${audienceBlock}
+
+${focusBlock}
 
 PROJECT DATA:
 - Client: ${get('clientName')}

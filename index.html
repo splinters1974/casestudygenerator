@@ -214,6 +214,24 @@
                     </div>
                 </div>
 
+                <div class="form-group" style="margin-bottom:20px;">
+                    <label for="contentFocus">Content Focus</label>
+                    <select id="contentFocus" onchange="updateFocusField()">
+                        <option value="general">General</option>
+                        <option value="finance">Finance Led</option>
+                        <option value="resilience">Resilience Led</option>
+                        <option value="carbon">Carbon Led</option>
+                        <option value="targets">Targets Led</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customTargetsGroup" style="display:none;margin-bottom:20px;">
+                    <label for="customTargets">Client Targets &amp; Commitments</label>
+                    <textarea id="customTargets"
+                              placeholder="e.g. ISO 50001 certified by 2026, Scope 3 net zero by 2040, SBTi 1.5°C aligned, ESOS Phase 3 compliant…"
+                              style="min-height:80px;"></textarea>
+                </div>
+
                 <div id="status" class="status" role="status" aria-live="polite"></div>
 
                 <div class="button-group">
