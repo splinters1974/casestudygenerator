@@ -1,5 +1,5 @@
-const STORAGE_KEY = 'kecCaseStudy';
-const API_KEY_STORAGE = 'kecApiKey';
+const STORAGE_KEY = 'amerescoCaseStudy';
+const API_KEY_STORAGE = 'amerescoApiKey';
 let currentSlide = 1;
 let generatedContent = null;
 let images = [null, null, null];
@@ -223,7 +223,7 @@ async function generateContent() {
 
 function buildPrompt() {
     const get = id => document.getElementById(id).value;
-    return `You are a professional case study writer for Kinetic Energy Consulting (KEC), a UK energy consulting firm specializing in solar installations and LED retrofits.
+    return `You are a professional case study writer for Ameresco, a leading energy efficiency and renewable energy company.
 
 Your task is to generate three versions of a B2B case study from the following information:
 
