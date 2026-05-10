@@ -3,6 +3,8 @@ const API_KEY_STORAGE = 'amerescoApiKey';
 let currentSlide = 1;
 let generatedContent = null;
 let images = [null, null, null];
+let clearPending = false;
+let clearTimer = null;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -74,7 +76,8 @@ function saveToStorage() {
         challenge: document.getElementById('challenge').value,
         solution: document.getElementById('solution').value,
         results: document.getElementById('results').value,
-        images: images
+        images: images,
+        generatedContent: generatedContent
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
@@ -99,6 +102,11 @@ function loadFromStorage() {
             for (let i = 0; i < 3; i++) {
                 if (images[i]) displayImagePreview(i + 1, images[i]);
             }
+        }
+        if (data.generatedContent) {
+            generatedContent = data.generatedContent;
+            renderContent();
+            document.getElementById('outputSection').style.display = 'block';
         }
     }
 
@@ -405,9 +413,24 @@ function updateSlide() {
 }
 
 function clearForm() {
-    if (confirm('Clear all inputs? This cannot be undone.')) {
+    const btn = document.getElementById('clearBtn');
+    if (!clearPending) {
+        clearPending = true;
+        btn.textContent = 'Sure?';
+        btn.classList.add('btn-warning');
+        clearTimer = setTimeout(() => {
+            clearPending = false;
+            btn.textContent = 'Clear';
+            btn.classList.remove('btn-warning');
+        }, 3000);
+    } else {
+        clearTimeout(clearTimer);
+        clearPending = false;
+        btn.textContent = 'Clear';
+        btn.classList.remove('btn-warning');
         document.querySelectorAll('input:not(#apiKeyInput), select, textarea').forEach(el => el.value = '');
         images = [null, null, null];
+        generatedContent = null;
         for (let i = 1; i <= 3; i++) removeImage(i);
         localStorage.removeItem(STORAGE_KEY);
         showStatus('', '');
@@ -471,7 +494,7 @@ function downloadLongForm() {
     <style>
         body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; }
         h1 { font-size: 32px; margin-bottom: 20px; }
-        h3 { font-size: 20px; margin-top: 30px; margin-bottom: 15px; color: #C97C3A; }
+        h3 { font-size: 20px; margin-top: 30px; margin-bottom: 15px; color: #4A8A37; }
         p { line-height: 1.8; margin-bottom: 15px; }
         .meta { color: #888; font-size: 14px; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
         img { max-width: 100%; height: auto; margin: 30px 0; }

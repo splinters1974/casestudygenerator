@@ -5,10 +5,10 @@
 }
 
 :root {
-    --cream: #F5F1E8;
-    --gold: #D4AF37;
-    --slate: #3D4A5C;
-    --amber: #C97C3A;
+    --cream: #F0F4EE;
+    --gold: #4A8A37;
+    --slate: #1A3A6B;
+    --amber: #78BE20;
     --light-slate: #E8EBF0;
     --dark-text: #2C2C2C;
 }
@@ -244,6 +244,11 @@ button:focus-visible {
     font-size: 11px;
     flex: none;
     width: auto;
+}
+
+.btn-warning {
+    background: #C62828 !important;
+    color: white !important;
 }
 
 /* Output Tabs */
