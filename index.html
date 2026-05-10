@@ -542,6 +542,62 @@
                 padding: 20px;
             }
         }
+
+        .api-key-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--amber);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .api-key-bar label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--slate);
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+        .api-key-bar input {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid var(--light-slate);
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            background: #FAFAF8;
+        }
+        .api-key-hint {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 18px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.25s, transform 0.25s;
+            z-index: 1000;
+            max-width: 320px;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast-success { background: #2E7D32; color: white; }
+        .toast-error { background: #C62828; color: white; }
+        .toast-info { background: var(--slate); color: white; }
     </style>
 </head>
 <body>
@@ -551,6 +607,16 @@
             <div class="kec-logo">KEC</div>
             <h1>Case Study Generator</h1>
         </div>
+
+        <!-- API Key -->
+        <div class="api-key-bar">
+            <label for="apiKeyInput">Anthropic API Key</label>
+            <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" oninput="saveApiKey(this.value)">
+            <span class="api-key-hint">Stored locally in your browser only — never sent anywhere except Anthropic.</span>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="toast"></div>
 
         <!-- Input Section -->
         <div class="grid">
@@ -710,9 +776,9 @@
             <h2 style="font-family: 'DM Serif Display', serif; margin-bottom: 30px;">Generated Content</h2>
 
             <div class="tabs">
-                <button class="tab-button active" onclick="switchTab('carousel')">LinkedIn Carousel</button>
-                <button class="tab-button" onclick="switchTab('pdf')">Medium PDF</button>
-                <button class="tab-button" onclick="switchTab('longform')">Long Form Blog</button>
+                <button class="tab-button active" onclick="switchTab(event, 'carousel')">LinkedIn Carousel</button>
+                <button class="tab-button" onclick="switchTab(event, 'pdf')">Medium PDF</button>
+                <button class="tab-button" onclick="switchTab(event, 'longform')">Long Form Blog</button>
             </div>
 
             <!-- Carousel Tab -->
@@ -798,10 +864,50 @@
 
     <script>
         const STORAGE_KEY = 'kecCaseStudy';
-        const API_KEY = '';
+        const API_KEY_STORAGE = 'kecApiKey';
         let currentSlide = 1;
         let generatedContent = null;
         let images = [null, null, null];
+
+        function getApiKey() {
+            return document.getElementById('apiKeyInput').value.trim();
+        }
+
+        function saveApiKey(value) {
+            if (value.trim()) {
+                localStorage.setItem(API_KEY_STORAGE, value.trim());
+            } else {
+                localStorage.removeItem(API_KEY_STORAGE);
+            }
+        }
+
+        function esc(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast toast-${type} show`;
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => {
+                toast.className = `toast toast-${type}`;
+            }, 3000);
+        }
+
+        function extractJSON(text) {
+            try { return JSON.parse(text); } catch {}
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if (start !== -1 && end > start) {
+                return JSON.parse(text.slice(start, end + 1));
+            }
+            throw new Error('Could not parse AI response');
+        }
 
         // Storage Management
         function saveToStorage() {
@@ -866,15 +972,20 @@
         // Image Handling
         function handleImageUpload(slotNum, input) {
             const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    images[slotNum - 1] = e.target.result;
-                    displayImagePreview(slotNum, e.target.result);
-                    saveToStorage();
-                };
-                reader.readAsDataURL(file);
+            if (!file) return;
+            const MAX_BYTES = 2 * 1024 * 1024;
+            if (file.size > MAX_BYTES) {
+                showToast('Image must be under 2 MB', 'error');
+                input.value = '';
+                return;
             }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                images[slotNum - 1] = e.target.result;
+                displayImagePreview(slotNum, e.target.result);
+                saveToStorage();
+            };
+            reader.readAsDataURL(file);
         }
 
         function displayImagePreview(slotNum, base64) {
@@ -904,6 +1015,13 @@
 
         // Generate Content
         async function generateContent() {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                showStatus('Please enter your Anthropic API key above', 'error');
+                document.getElementById('apiKeyInput').focus();
+                return;
+            }
+
             const clientName = document.getElementById('clientName').value.trim();
             const projectTitle = document.getElementById('projectTitle').value.trim();
             const challenge = document.getElementById('challenge').value.trim();
@@ -915,7 +1033,9 @@
                 return;
             }
 
-            showStatus('Generating your case studies...', 'loading');
+            const btn = document.querySelector('.btn-primary');
+            btn.disabled = true;
+            showStatus('Generating your case studies…', 'loading');
 
             try {
                 const prompt = buildPrompt();
@@ -923,34 +1043,25 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'x-api-key': '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'
+                        'x-api-key': apiKey,
+                        'anthropic-version': '2023-06-01',
+                        'anthropic-dangerous-request-proxy': 'true'
                     },
                     body: JSON.stringify({
-                        model: 'claude-sonnet-4-20250514',
+                        model: 'claude-sonnet-4-5',
                         max_tokens: 3000,
-                        messages: [
-                            { role: 'user', content: prompt }
-                        ]
+                        messages: [{ role: 'user', content: prompt }]
                     })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`API error: ${response.statusText}`);
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.error?.message || response.statusText);
                 }
 
                 const data = await response.json();
                 const generatedText = data.content[0].text;
-                
-                try {
-                    generatedContent = JSON.parse(generatedText);
-                } catch {
-                    const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) {
-                        generatedContent = JSON.parse(jsonMatch[0]);
-                    } else {
-                        throw new Error('Could not parse AI response');
-                    }
-                }
+                generatedContent = extractJSON(generatedText);
 
                 renderContent();
                 document.getElementById('outputSection').style.display = 'block';
@@ -959,6 +1070,8 @@
             } catch (error) {
                 console.error('Generation error:', error);
                 showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
             }
         }
 
@@ -1051,140 +1164,87 @@ Important guidelines:
 Return ONLY valid JSON, no markdown or preamble.`;
         }
 
+        function buildSlide(slideEl, slide, imageBase64) {
+            slideEl.innerHTML = '';
+            if (imageBase64) {
+                const img = document.createElement('img');
+                img.src = imageBase64;
+                img.alt = '';
+                slideEl.appendChild(img);
+            }
+            const textDiv = document.createElement('div');
+            textDiv.className = 'carousel-text';
+            const h3 = document.createElement('h3');
+            h3.textContent = slide.title;
+            const p = document.createElement('p');
+            p.textContent = slide.text;
+            textDiv.appendChild(h3);
+            textDiv.appendChild(p);
+            slideEl.appendChild(textDiv);
+        }
+
         function renderContent() {
             if (!generatedContent) return;
 
-            // Carousel
+            // Carousel — use DOM API to avoid XSS
             generatedContent.carousel.forEach((slide, i) => {
-                const slideNum = i + 1;
-                document.getElementById(`carouselTitle${slideNum}`).textContent = slide.title;
-                document.getElementById(`carouselText${slideNum}`).textContent = slide.text;
-                
-                // Add image if available
-                const slideEl = document.getElementById(`slide${slideNum}`);
-                if (images[i] && i < 3) {
-                    slideEl.innerHTML = `
-                        <img src="${images[i]}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;">
-                        <div class="carousel-text">
-                            <h3>${slide.title}</h3>
-                            <p>${slide.text}</p>
-                        </div>
-                    `;
-                } else {
-                    slideEl.innerHTML = `
-                        <div class="carousel-text">
-                            <h3>${slide.title}</h3>
-                            <p>${slide.text}</p>
-                        </div>
-                    `;
-                }
+                const slideEl = document.getElementById(`slide${i + 1}`);
+                buildSlide(slideEl, slide, i < 3 ? images[i] : null);
             });
 
-            // PDF
-            const pdfMeta = `
-                <strong>${document.getElementById('projectType').value}</strong> | 
-                ${document.getElementById('location').value} | 
-                ${document.getElementById('completionDate').value}
-            `;
+            // PDF — form field values escaped, AI content trusted via innerHTML
             document.getElementById('pdfTitle').textContent = generatedContent.pdfShort.title;
-            document.getElementById('pdfMeta').innerHTML = pdfMeta;
+            document.getElementById('pdfMeta').innerHTML =
+                `<strong>${esc(document.getElementById('projectType').value)}</strong> | ` +
+                `${esc(document.getElementById('location').value)} | ` +
+                `${esc(document.getElementById('completionDate').value)}`;
 
             let pdfBody = '';
-            if (images[0]) {
-                pdfBody += `<img src="${images[0]}" class="pdf-image">`;
-            }
-            pdfBody += `
-                <div class="pdf-section">
-                    <h3>Challenge</h3>
-                    <p>${generatedContent.pdfShort.challenge}</p>
-                </div>
-            `;
-            pdfBody += `
-                <div class="pdf-section">
-                    <h3>Solution</h3>
-                    <p>${generatedContent.pdfShort.solution}</p>
-                </div>
-            `;
-            if (images[1]) {
-                pdfBody += `<img src="${images[1]}" class="pdf-image">`;
-            }
-            pdfBody += `
-                <div class="pdf-section">
-                    <h3>Results</h3>
-                    <p>${generatedContent.pdfShort.results}</p>
-                </div>
-            `;
-            if (images[2]) {
-                pdfBody += `<img src="${images[2]}" class="pdf-image">`;
-            }
+            if (images[0]) pdfBody += `<img src="${images[0]}" class="pdf-image" alt="">`;
+            pdfBody += `<div class="pdf-section"><h3>Challenge</h3><p>${generatedContent.pdfShort.challenge}</p></div>`;
+            pdfBody += `<div class="pdf-section"><h3>Solution</h3><p>${generatedContent.pdfShort.solution}</p></div>`;
+            if (images[1]) pdfBody += `<img src="${images[1]}" class="pdf-image" alt="">`;
+            pdfBody += `<div class="pdf-section"><h3>Results</h3><p>${generatedContent.pdfShort.results}</p></div>`;
+            if (images[2]) pdfBody += `<img src="${images[2]}" class="pdf-image" alt="">`;
 
-            // Add metrics box
             const metrics = [];
-            if (document.getElementById('kwhGeneration').value) {
-                metrics.push(`${document.getElementById('kwhGeneration').value} kWh/year`);
-            }
-            if (document.getElementById('carbonSavings').value) {
-                metrics.push(`${document.getElementById('carbonSavings').value}t CO₂ saved`);
-            }
-            if (document.getElementById('financialSavings').value) {
-                metrics.push(`£${document.getElementById('financialSavings').value}/year`);
-            }
-
+            if (document.getElementById('kwhGeneration').value)
+                metrics.push(`${esc(document.getElementById('kwhGeneration').value)} kWh/year`);
+            if (document.getElementById('carbonSavings').value)
+                metrics.push(`${esc(document.getElementById('carbonSavings').value)}t CO₂ saved`);
+            if (document.getElementById('financialSavings').value)
+                metrics.push(`£${esc(document.getElementById('financialSavings').value)}/year`);
             if (metrics.length > 0) {
-                pdfBody += `
-                    <div class="pdf-section" style="background: var(--light-slate); padding: 15px; border-radius: 4px;">
-                        <strong>Key Metrics:</strong> ${metrics.join(' • ')}
-                    </div>
-                `;
+                pdfBody += `<div class="pdf-section" style="background:var(--light-slate);padding:15px;border-radius:4px;">` +
+                    `<strong>Key Metrics:</strong> ${metrics.join(' • ')}</div>`;
             }
-
             document.getElementById('pdfBody').innerHTML = pdfBody;
 
-            // Long Form
+            // Long Form — form field values escaped, AI content trusted via innerHTML
             document.getElementById('longformTitle').textContent = generatedContent.longForm.title;
-            
-            const longMeta = `
-                <div><strong>Project Type:</strong> ${document.getElementById('projectType').value}</div>
-                <div><strong>Location:</strong> ${document.getElementById('location').value}</div>
-                <div><strong>Size:</strong> ${document.getElementById('projectSize').value}</div>
-                <div><strong>Completion:</strong> ${document.getElementById('completionDate').value}</div>
-            `;
-            document.getElementById('longformMeta').innerHTML = longMeta;
+            document.getElementById('longformMeta').innerHTML =
+                `<div><strong>Project Type:</strong> ${esc(document.getElementById('projectType').value)}</div>` +
+                `<div><strong>Location:</strong> ${esc(document.getElementById('location').value)}</div>` +
+                `<div><strong>Size:</strong> ${esc(document.getElementById('projectSize').value)}</div>` +
+                `<div><strong>Completion:</strong> ${esc(document.getElementById('completionDate').value)}</div>`;
 
             let longformBody = '';
-            if (images[0]) {
-                longformBody += `<img src="${images[0]}" class="longform-image">`;
-            }
-            longformBody += `
-                <p><strong>Overview</strong></p>
-                <p>${generatedContent.longForm.intro}</p>
-                <h3>The Challenge</h3>
-                <p>${generatedContent.longForm.challenge}</p>
-            `;
-            if (images[1]) {
-                longformBody += `<img src="${images[1]}" class="longform-image">`;
-            }
-            longformBody += `
-                <h3>Our Solution</h3>
-                <p>${generatedContent.longForm.solution}</p>
-            `;
-            if (images[2]) {
-                longformBody += `<img src="${images[2]}" class="longform-image">`;
-            }
-            longformBody += `
-                <h3>Results & Impact</h3>
-                <p>${generatedContent.longForm.results}</p>
-            `;
-
+            if (images[0]) longformBody += `<img src="${images[0]}" class="longform-image" alt="">`;
+            longformBody += `<p><strong>Overview</strong></p><p>${generatedContent.longForm.intro}</p>`;
+            longformBody += `<h3>The Challenge</h3><p>${generatedContent.longForm.challenge}</p>`;
+            if (images[1]) longformBody += `<img src="${images[1]}" class="longform-image" alt="">`;
+            longformBody += `<h3>Our Solution</h3><p>${generatedContent.longForm.solution}</p>`;
+            if (images[2]) longformBody += `<img src="${images[2]}" class="longform-image" alt="">`;
+            longformBody += `<h3>Results &amp; Impact</h3><p>${generatedContent.longForm.results}</p>`;
             document.getElementById('longformBody').innerHTML = longformBody;
         }
 
         // UI Functions
-        function switchTab(tabName) {
+        function switchTab(event, tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            event.currentTarget.classList.add('active');
         }
 
         function nextSlide() {
@@ -1238,7 +1298,7 @@ Return ONLY valid JSON, no markdown or preamble.`;
         function copyPdfHtml() {
             const html = document.getElementById('pdfContent').innerHTML;
             navigator.clipboard.writeText(html).then(() => {
-                alert('HTML copied to clipboard');
+                showToast('HTML copied to clipboard', 'success');
             });
         }
 
@@ -1275,12 +1335,12 @@ Return ONLY valid JSON, no markdown or preamble.`;
         function copyLongFormHtml() {
             const html = document.getElementById('longformContent').innerHTML;
             navigator.clipboard.writeText(html).then(() => {
-                alert('HTML copied to clipboard');
+                showToast('HTML copied to clipboard', 'success');
             });
         }
 
         function downloadCarousel() {
-            alert('Carousel image download feature coming soon. For now, screenshot each slide or copy text.');
+            showToast('Carousel image download coming soon — screenshot each slide or use Copy Text for now.', 'info');
         }
 
         function copyCarouselText() {
@@ -1289,12 +1349,16 @@ Return ONLY valid JSON, no markdown or preamble.`;
                 text += `Slide ${i + 1}: ${slide.title}\n${slide.text}\n\n`;
             });
             navigator.clipboard.writeText(text).then(() => {
-                alert('Carousel text copied to clipboard');
+                showToast('Carousel text copied to clipboard', 'success');
             });
         }
 
         // Load saved data on page load
-        window.addEventListener('DOMContentLoaded', loadFromStorage);
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            const storedKey = localStorage.getItem(API_KEY_STORAGE);
+            if (storedKey) document.getElementById('apiKeyInput').value = storedKey;
+        });
     </script>
 </body>
 </html>
