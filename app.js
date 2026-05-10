@@ -91,7 +91,8 @@ function loadFromStorage() {
             'kwhGeneration','carbonSavings','financialSavings','completionDate',
             'customerName','customerRole','customerQuote',
             'supplierName','supplierRole','supplierQuote',
-            'challenge','solution','results'
+            'challenge','solution','results',
+            'contentLength','audienceType'
         ];
         fields.forEach(id => {
             const el = document.getElementById(id);
@@ -112,6 +113,7 @@ function loadFromStorage() {
 
     const storedKey = localStorage.getItem(API_KEY_STORAGE);
     if (storedKey) document.getElementById('apiKeyInput').value = storedKey;
+    updateTabLabels();
 }
 
 // ── Image Handling ────────────────────────────────────────────────────────────
@@ -229,73 +231,143 @@ async function generateContent() {
     }
 }
 
+function updateTabLabels() {
+    const isInternal = document.getElementById('audienceType').value === 'internal';
+    const labels = isInternal
+        ? ['Briefing Slides', 'Executive Summary', 'Full Report']
+        : ['LinkedIn Carousel', 'Marketing PDF', 'Blog Article'];
+    document.getElementById('tab-carousel').textContent = labels[0];
+    document.getElementById('tab-pdf').textContent = labels[1];
+    document.getElementById('tab-longform').textContent = labels[2];
+}
+
 function buildPrompt() {
     const get = id => document.getElementById(id).value;
-    return `You are a professional case study writer for Ameresco, a leading energy efficiency and renewable energy company.
+    const length = get('contentLength') || 'medium';
+    const isInternal = get('audienceType') === 'internal';
 
-Your task is to generate three versions of a B2B case study from the following information:
+    const wc = {
+        short:  { slide: 30, pdfSec: '1–2 sentences',   intro: '80–100',  ch: '120–150', sol: '150–180', res: '100–130' },
+        medium: { slide: 50, pdfSec: '2–3 sentences',   intro: '150–180', ch: '180–220', sol: '220–260', res: '170–210' },
+        large:  { slide: 60, pdfSec: '4–5 sentences',   intro: '250–300', ch: '350–400', sol: '400–450', res: '300–350' }
+    }[length];
+
+    const audienceBlock = isInternal
+        ? `AUDIENCE: Internal stakeholders — senior management, finance, operations
+TONE & FOCUS:
+- Factual, analytical, business-case led
+- Lead with financial metrics: payback period, ROI %, annual savings
+- Where data allows, calculate payback period (project cost ÷ annual savings) and percentage improvement
+- Include technical implementation detail and any complexity overcome
+- Reference capital expenditure, operational savings, and maintenance impact candidly
+- Include a brief "why this solution / why Ameresco" procurement rationale
+- Acknowledge challenges and how they were resolved — internal readers value honesty`
+        : `AUDIENCE: External — prospects, clients, LinkedIn, press
+TONE & FOCUS:
+- Professional, confident, aspirational
+- Open every section with the single most impressive outcome to hook the reader
+- Frame Ameresco as the expert partner that understood the client's unique challenge
+- Include a clear "why Ameresco" moment that implies competitive differentiation
+- Use accessible language — no internal jargon
+- Quotes must appear immediately after the specific claim they validate, never as standalone blocks`;
+
+    const format1Guidance = isInternal
+        ? `BRIEFING SLIDES (5 slides for an internal presentation):
+Slide 1 — Context: client, project type, scale
+Slide 2 — Business Case: the operational or financial problem that justified investment
+Slide 3 — Approach: what Ameresco delivered and why this solution was chosen
+Slide 4 — Outcomes: hard numbers — savings, ROI, payback period
+Slide 5 — Lessons & Next Steps: key takeaways and recommended actions`
+        : `LINKEDIN CAROUSEL (5 slides designed to stop the scroll):
+Slide 1 — Hook: lead with the single most impressive outcome — specific, not vague
+Slide 2 — Challenge: the client's pain state before Ameresco — create before/after contrast
+Slide 3 — Solution: what Ameresco delivered — the approach, not a feature list
+Slide 4 — Results: 2–3 hard numbers that prove transformation
+Slide 5 — CTA: invite similar organisations to start the conversation with Ameresco`;
+
+    const format2Name = isInternal ? 'EXECUTIVE SUMMARY' : 'MARKETING CASE STUDY PDF';
+    const format3Name = isInternal ? 'FULL PROJECT REPORT' : 'BLOG ARTICLE';
+
+    return `You are an expert B2B case study writer for Ameresco, a leading energy efficiency and renewable energy company delivering projects across the UK.
+
+Generate three content formats from the project data below. Every version must follow a clear narrative arc: client context → before-state (challenge) → solution journey → measurable results → social proof → call to action. Create vivid before/after contrast throughout — the gap between pain state and transformed state is what makes case studies compelling.
+
+${audienceBlock}
 
 PROJECT DATA:
 - Client: ${get('clientName')}
-- Title: ${get('projectTitle')}
+- Project: ${get('projectTitle')}
 - Type: ${get('projectType')}
 - Size: ${get('projectSize')}
 - Location: ${get('location')}
-- Annual kWh: ${get('kwhGeneration')}
-- Carbon Savings: ${get('carbonSavings')} tonnes CO₂
-- Annual Savings: £${get('financialSavings')}
+- Annual Generation/Saving: ${get('kwhGeneration')} kWh
+- Carbon Saving: ${get('carbonSavings')} tonnes CO₂/year
+- Annual Financial Saving: £${get('financialSavings')}
 - Completion: ${get('completionDate')}
 
-CHALLENGE (bullet points to expand):
+CHALLENGE (expand into narrative — describe the before-state vividly):
 ${get('challenge')}
 
-SOLUTION (bullet points to expand):
+SOLUTION (expand into narrative — describe the journey, not just a feature list):
 ${get('solution')}
 
-RESULTS (narrative to refine):
+RESULTS (refine and frame with ROI context where data allows):
 ${get('results')}
 
 STAKEHOLDERS:
 Customer: ${get('customerName')}, ${get('customerRole')}
-Quote: "${get('customerQuote')}"
-Supplier: ${get('supplierName')}, ${get('supplierRole')}
-Quote: "${get('supplierQuote')}"
+Customer quote: "${get('customerQuote')}"
+Partner/Supplier: ${get('supplierName')}, ${get('supplierRole')}
+Partner quote: "${get('supplierQuote')}"
 
-Create a JSON response with this exact structure:
+━━━━━━━━━━━━━━━━━━━ FORMAT INSTRUCTIONS ━━━━━━━━━━━━━━━━━━━
+
+${format1Guidance}
+Each slide: max ${wc.slide} words. Titles must be specific and results-led — never generic labels like "The Challenge" or "Our Solution".
+
+${format2Name}:
+- title: A result-led headline (not just the project name)
+- challenge: ${wc.pdfSec} — describe the before-state
+- solution: ${wc.pdfSec} — describe what was delivered and why
+- results: ${wc.pdfSec} — end with a crisp before/after summary and the headline metric
+
+${format3Name}:
+- title: Compelling, SEO-friendly, result-led headline
+- intro: ${wc.intro} words — open with the headline outcome, then set client context
+- challenge: ${wc.ch} words — paint the before-state vividly; why this problem mattered to the business
+- solution: ${wc.sol} words — the journey and approach; include a "why Ameresco" moment
+- results: ${wc.res} words — quantified outcomes with ROI framing; weave quotes in immediately after the claims they support
+
+━━━━━━━━━━━━━━━━━━━ UNIVERSAL RULES ━━━━━━━━━━━━━━━━━━━
+- All financial figures in £, all spellings UK English (realise, organisation, programme, recognise)
+- Never invent data not provided; if a metric is absent, write around it
+- Where the data allows, calculate payback period and percentage improvements
+- Quotes must validate a specific preceding claim — never float free
+
+Return ONLY valid JSON with no markdown or preamble:
 
 {
   "carousel": [
-    {"title": "Slide 1: Intro", "text": "Brief intro text (max 50 words)"},
-    {"title": "Slide 2: Challenge", "text": "Challenge summary (max 50 words)"},
-    {"title": "Slide 3: Solution", "text": "Solution summary (max 50 words)"},
-    {"title": "Slide 4: Results", "text": "Results summary (max 50 words)"},
-    {"title": "Slide 5: CTA", "text": "Call to action (max 50 words)"}
+    {"title": "result-led title", "text": "slide text"},
+    {"title": "result-led title", "text": "slide text"},
+    {"title": "result-led title", "text": "slide text"},
+    {"title": "result-led title", "text": "slide text"},
+    {"title": "result-led title", "text": "slide text"}
   ],
   "pdfShort": {
-    "title": "${get('projectTitle')}",
-    "challenge": "2-3 sentences expanding the bullet points",
-    "solution": "2-3 sentences expanding the bullet points",
-    "results": "2-3 sentences summarizing outcomes"
+    "title": "result-led headline",
+    "challenge": "per instructions",
+    "solution": "per instructions",
+    "results": "per instructions"
   },
   "longForm": {
-    "title": "${get('projectTitle')}",
-    "intro": "150-200 word introduction",
-    "challenge": "200-250 word challenge section",
-    "solution": "250-300 word solution section",
-    "results": "200-250 word results section with narrative and metrics"
+    "title": "result-led SEO headline",
+    "intro": "per word count",
+    "challenge": "per word count",
+    "solution": "per word count",
+    "results": "per word count"
   }
-}
-
-Important guidelines:
-- For carousel: Use punchy, LinkedIn-friendly language
-- For PDF: Professional but concise, include specific metrics
-- For long form: Up to 1000 words total, narrative style, weave in quotes naturally if provided
-- If quotes exist, integrate them organically into the prose, not as separate blocks
-- Tone: professional, confident, results-focused
-- Always emphasize measurable outcomes (kWh, savings, CO₂)
-- Use UK English spelling (realise, organisation, etc.)
-
-Return ONLY valid JSON, no markdown or preamble.`;
+}`;
 }
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
