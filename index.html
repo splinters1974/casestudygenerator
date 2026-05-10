@@ -4,639 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KEC Case Study Generator</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --cream: #F5F1E8;
-            --gold: #D4AF37;
-            --slate: #3D4A5C;
-            --amber: #C97C3A;
-            --light-slate: #E8EBF0;
-            --dark-text: #2C2C2C;
-        }
-
-        body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, var(--cream) 0%, #FAFAF8 100%);
-            color: var(--dark-text);
-            line-height: 1.6;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 40px;
-            border-bottom: 2px solid var(--gold);
-            padding-bottom: 20px;
-        }
-
-        .kec-logo {
-            font-family: 'DM Serif Display', serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--slate);
-            margin-right: 20px;
-            letter-spacing: -1px;
-        }
-
-        .header h1 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 28px;
-            color: var(--dark-text);
-            font-weight: 400;
-            letter-spacing: -0.5px;
-        }
-
-        /* Main Layout */
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .section {
-            background: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--gold);
-        }
-
-        .section h2 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 20px;
-            margin-bottom: 20px;
-            color: var(--slate);
-            font-weight: 400;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--slate);
-            margin-bottom: 8px;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--light-slate);
-            border-radius: 4px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            color: var(--dark-text);
-            background: #FAFAF8;
-            transition: border-color 0.2s;
-        }
-
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--gold);
-            background: white;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        /* Image Upload */
-        .image-upload-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .image-upload-slot {
-            position: relative;
-            border: 2px dashed var(--gold);
-            border-radius: 6px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            background: #FAFAF8;
-            transition: all 0.2s;
-        }
-
-        .image-upload-slot:hover {
-            background: var(--cream);
-            border-color: var(--amber);
-        }
-
-        .image-upload-slot input[type="file"] {
-            display: none;
-        }
-
-        .image-preview {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        .image-label {
-            font-size: 11px;
-            color: var(--slate);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .remove-image {
-            font-size: 11px;
-            color: var(--amber);
-            cursor: pointer;
-            margin-top: 8px;
-        }
-
-        /* Two Column Form Layout */
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        button {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--slate);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--amber);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            background: var(--light-slate);
-            color: var(--slate);
-        }
-
-        .btn-secondary:hover {
-            background: var(--gold);
-            color: white;
-        }
-
-        .btn-small {
-            padding: 8px 12px;
-            font-size: 11px;
-            flex: none;
-            width: auto;
-        }
-
-        /* Output Tabs */
-        .output-section {
-            background: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--gold);
-            margin-bottom: 40px;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 0;
-            border-bottom: 2px solid var(--light-slate);
-            margin-bottom: 30px;
-        }
-
-        .tab-button {
-            padding: 12px 20px;
-            border: none;
-            background: transparent;
-            color: var(--slate);
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .tab-button.active {
-            color: var(--amber);
-            border-bottom-color: var(--amber);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Carousel Preview */
-        .carousel-container {
-            background: var(--slate);
-            border-radius: 8px;
-            overflow: hidden;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .carousel-slide {
-            display: none;
-            aspect-ratio: 9/16;
-            padding: 30px;
-            color: white;
-            position: relative;
-            background: linear-gradient(135deg, var(--slate) 0%, var(--amber) 100%);
-            overflow: hidden;
-        }
-
-        .carousel-slide.active {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-
-        .carousel-slide img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.7;
-        }
-
-        .carousel-text {
-            position: relative;
-            z-index: 2;
-            background: rgba(0,0,0,0.4);
-            padding: 20px;
-            border-radius: 4px;
-            backdrop-filter: blur(4px);
-        }
-
-        .carousel-text h3 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 20px;
-            margin-bottom: 10px;
-            font-weight: 400;
-        }
-
-        .carousel-text p {
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .carousel-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            gap: 15px;
-        }
-
-        .carousel-nav {
-            display: flex;
-            gap: 10px;
-        }
-
-        .carousel-nav button {
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            background: var(--gold);
-            color: var(--slate);
-            border-radius: 50%;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .carousel-counter {
-            font-size: 12px;
-            color: var(--slate);
-            font-weight: 600;
-        }
-
-        /* PDF Preview */
-        .pdf-preview {
-            background: white;
-            padding: 40px;
-            border: 1px solid var(--light-slate);
-            border-radius: 4px;
-            max-width: 600px;
-            margin: 0 auto;
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .pdf-title {
-            font-family: 'DM Serif Display', serif;
-            font-size: 24px;
-            color: var(--slate);
-            margin-bottom: 10px;
-            font-weight: 400;
-        }
-
-        .pdf-meta {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--light-slate);
-            padding-bottom: 15px;
-        }
-
-        .pdf-section {
-            margin-bottom: 25px;
-        }
-
-        .pdf-section h3 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 18px;
-            color: var(--amber);
-            margin-bottom: 12px;
-            font-weight: 400;
-        }
-
-        .pdf-section p {
-            margin-bottom: 10px;
-            text-align: justify;
-        }
-
-        .pdf-image {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-
-        /* Long Form Preview */
-        .longform-preview {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .longform-header {
-            margin-bottom: 30px;
-            border-bottom: 2px solid var(--gold);
-            padding-bottom: 20px;
-        }
-
-        .longform-title {
-            font-family: 'DM Serif Display', serif;
-            font-size: 32px;
-            color: var(--slate);
-            margin-bottom: 10px;
-            font-weight: 400;
-            line-height: 1.2;
-        }
-
-        .longform-meta {
-            font-size: 13px;
-            color: #888;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .longform-body {
-            font-size: 15px;
-            line-height: 1.8;
-            color: var(--dark-text);
-        }
-
-        .longform-body h3 {
-            font-family: 'DM Serif Display', serif;
-            font-size: 22px;
-            color: var(--amber);
-            margin-top: 30px;
-            margin-bottom: 15px;
-            font-weight: 400;
-        }
-
-        .longform-body p {
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
-        .longform-image {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin: 30px 0;
-        }
-
-        /* Download Options */
-        .download-options {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--light-slate);
-        }
-
-        .status {
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            display: none;
-        }
-
-        .status.loading {
-            display: block;
-            background: #E3F2FD;
-            color: var(--slate);
-            border-left: 4px solid var(--gold);
-        }
-
-        .status.success {
-            display: block;
-            background: #E8F5E9;
-            color: #2E7D32;
-            border-left: 4px solid var(--gold);
-        }
-
-        .status.error {
-            display: block;
-            background: #FFEBEE;
-            color: #C62828;
-            border-left: 4px solid var(--amber);
-        }
-
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .two-col {
-                grid-template-columns: 1fr;
-            }
-
-            .image-upload-container {
-                grid-template-columns: 1fr;
-            }
-
-            .carousel-slide {
-                aspect-ratio: auto;
-                min-height: 500px;
-            }
-
-            .pdf-preview {
-                padding: 20px;
-            }
-        }
-
-        .api-key-bar {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: white;
-            border-radius: 8px;
-            padding: 15px 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--amber);
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .api-key-bar label {
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--slate);
-            white-space: nowrap;
-            margin-bottom: 0;
-        }
-        .api-key-bar input {
-            flex: 1;
-            min-width: 200px;
-            padding: 8px 12px;
-            border: 1px solid var(--light-slate);
-            border-radius: 4px;
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            background: #FAFAF8;
-        }
-        .api-key-hint {
-            font-size: 11px;
-            color: #888;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 12px 18px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            opacity: 0;
-            transform: translateY(8px);
-            transition: opacity 0.25s, transform 0.25s;
-            z-index: 1000;
-            max-width: 320px;
-            pointer-events: none;
-        }
-        .toast.show { opacity: 1; transform: translateY(0); }
-        .toast-success { background: #2E7D32; color: white; }
-        .toast-error { background: #C62828; color: white; }
-        .toast-info { background: var(--slate); color: white; }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div class="container">
+
         <!-- Header -->
-        <div class="header">
-            <div class="kec-logo">KEC</div>
+        <header class="header">
+            <div class="kec-logo" aria-label="KEC">KEC</div>
             <h1>Case Study Generator</h1>
-        </div>
+        </header>
 
         <!-- API Key -->
-        <div class="api-key-bar">
+        <div class="api-key-bar" role="region" aria-label="API configuration">
             <label for="apiKeyInput">Anthropic API Key</label>
-            <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" oninput="saveApiKey(this.value)">
-            <span class="api-key-hint">Stored locally in your browser only — never sent anywhere except Anthropic.</span>
+            <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…"
+                   autocomplete="off" oninput="saveApiKey(this.value)"
+                   aria-describedby="apiKeyHint">
+            <span id="apiKeyHint" class="api-key-hint">
+                Stored locally in your browser only — never sent anywhere except Anthropic.
+            </span>
         </div>
 
-        <!-- Toast -->
-        <div id="toast" class="toast"></div>
+        <!-- Toast (screen-reader live region) -->
+        <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-        <!-- Input Section -->
+        <!-- Project Details + Stakeholders -->
         <div class="grid">
-            <!-- Metadata -->
-            <div class="section">
-                <h2>Project Details</h2>
+
+            <section class="section" aria-labelledby="projectDetailsHeading">
+                <h2 id="projectDetailsHeading">Project Details</h2>
 
                 <div class="form-group">
-                    <label>Client Name</label>
-                    <input type="text" id="clientName" placeholder="e.g., ABC Manufacturing Ltd">
+                    <label for="clientName">Client Name</label>
+                    <input type="text" id="clientName" placeholder="e.g., ABC Manufacturing Ltd"
+                           autocomplete="organization">
                 </div>
 
                 <div class="form-group">
-                    <label>Project Title</label>
+                    <label for="projectTitle">Project Title</label>
                     <input type="text" id="projectTitle" placeholder="e.g., Large-Scale Solar Installation">
                 </div>
 
                 <div class="two-col">
                     <div class="form-group">
-                        <label>Project Type</label>
+                        <label for="projectType">Project Type</label>
                         <select id="projectType">
                             <option value="">Select type</option>
                             <option value="Solar Installation">Solar Installation</option>
@@ -649,189 +63,240 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Project Size</label>
+                        <label for="projectSize">Project Size</label>
                         <input type="text" id="projectSize" placeholder="e.g., 250 kWp">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Location</label>
+                    <label for="location">Location</label>
                     <input type="text" id="location" placeholder="e.g., Manchester, UK">
                 </div>
 
                 <div class="two-col">
                     <div class="form-group">
-                        <label>Annual kWh Generation</label>
-                        <input type="number" id="kwhGeneration" placeholder="e.g., 250000">
+                        <label for="kwhGeneration">Annual kWh Generation</label>
+                        <input type="number" id="kwhGeneration" placeholder="e.g., 250000" min="0">
                     </div>
 
                     <div class="form-group">
-                        <label>Carbon Savings (tonnes CO₂)</label>
-                        <input type="number" id="carbonSavings" placeholder="e.g., 125">
+                        <label for="carbonSavings">Carbon Savings (tonnes CO₂)</label>
+                        <input type="number" id="carbonSavings" placeholder="e.g., 125" min="0">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Annual Financial Savings (£)</label>
-                    <input type="number" id="financialSavings" placeholder="e.g., 45000">
+                    <label for="financialSavings">Annual Financial Savings (£)</label>
+                    <input type="number" id="financialSavings" placeholder="e.g., 45000" min="0">
                 </div>
 
                 <div class="form-group">
-                    <label>Project Completion Date</label>
+                    <label for="completionDate">Project Completion Date</label>
                     <input type="text" id="completionDate" placeholder="e.g., Q3 2024">
                 </div>
-            </div>
+            </section>
 
-            <!-- Stakeholders -->
-            <div class="section">
-                <h2>Stakeholders & Quotes</h2>
+            <section class="section" aria-labelledby="stakeholdersHeading">
+                <h2 id="stakeholdersHeading">Stakeholders &amp; Quotes</h2>
 
-                <div class="form-group">
-                    <label>Customer Sponsor</label>
-                    <input type="text" id="customerName" placeholder="Name">
-                    <input type="text" id="customerRole" placeholder="Job Title" style="margin-top: 8px;">
-                    <textarea id="customerQuote" placeholder="Quote (optional)" style="margin-top: 8px;"></textarea>
-                </div>
+                <fieldset style="border:none;padding:0;">
+                    <legend class="form-group" style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--slate);margin-bottom:8px;">Customer Sponsor</legend>
+                    <input type="text" id="customerName" placeholder="Name" aria-label="Customer name" style="margin-bottom:8px;">
+                    <input type="text" id="customerRole" placeholder="Job Title" aria-label="Customer job title" style="margin-bottom:8px;">
+                    <textarea id="customerQuote" placeholder="Quote (optional)" aria-label="Customer quote"></textarea>
+                </fieldset>
 
-                <div class="form-group">
-                    <label>Supplier/Partner Sponsor</label>
-                    <input type="text" id="supplierName" placeholder="Name">
-                    <input type="text" id="supplierRole" placeholder="Job Title" style="margin-top: 8px;">
-                    <textarea id="supplierQuote" placeholder="Quote (optional)" style="margin-top: 8px;"></textarea>
-                </div>
+                <fieldset style="border:none;padding:0;margin-top:20px;">
+                    <legend class="form-group" style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--slate);margin-bottom:8px;">Supplier/Partner Sponsor</legend>
+                    <input type="text" id="supplierName" placeholder="Name" aria-label="Supplier name" style="margin-bottom:8px;">
+                    <input type="text" id="supplierRole" placeholder="Job Title" aria-label="Supplier job title" style="margin-bottom:8px;">
+                    <textarea id="supplierQuote" placeholder="Quote (optional)" aria-label="Supplier quote"></textarea>
+                </fieldset>
 
-                <h2 style="margin-top: 30px;">Upload Images</h2>
-                <p style="font-size: 12px; color: #888; margin-bottom: 15px;">Max 3 images. Used across all output formats.</p>
+                <h2 id="imagesHeading" style="margin-top:30px;">Upload Images</h2>
+                <p style="font-size:12px;color:#888;margin-bottom:15px;">
+                    Max 3 images, 2 MB each. Used across all output formats.
+                </p>
 
-                <div class="image-upload-container">
-                    <div class="image-upload-slot" onclick="document.getElementById('image1').click();">
+                <div class="image-upload-container" role="group" aria-labelledby="imagesHeading">
+                    <div class="image-upload-slot"
+                         role="button" tabindex="0"
+                         aria-label="Upload image 1 — click or press Enter"
+                         onclick="document.getElementById('image1').click();"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('image1').click();}">
                         <div id="image1-preview-container">
                             <div class="image-label">Image 1</div>
-                            <div style="font-size: 24px; color: var(--gold); margin: 20px 0;">+</div>
-                            <div style="font-size: 11px; color: #888;">Click to upload</div>
+                            <div style="font-size:24px;color:var(--gold);margin:20px 0;" aria-hidden="true">+</div>
+                            <div style="font-size:11px;color:#888;">Click to upload</div>
                         </div>
-                        <input type="file" id="image1" accept="image/*" onchange="handleImageUpload(1, this)">
+                        <input type="file" id="image1" accept="image/*"
+                               aria-hidden="true" tabindex="-1"
+                               onchange="handleImageUpload(1, this)">
                     </div>
 
-                    <div class="image-upload-slot" onclick="document.getElementById('image2').click();">
+                    <div class="image-upload-slot"
+                         role="button" tabindex="0"
+                         aria-label="Upload image 2 — click or press Enter"
+                         onclick="document.getElementById('image2').click();"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('image2').click();}">
                         <div id="image2-preview-container">
                             <div class="image-label">Image 2</div>
-                            <div style="font-size: 24px; color: var(--gold); margin: 20px 0;">+</div>
-                            <div style="font-size: 11px; color: #888;">Click to upload</div>
+                            <div style="font-size:24px;color:var(--gold);margin:20px 0;" aria-hidden="true">+</div>
+                            <div style="font-size:11px;color:#888;">Click to upload</div>
                         </div>
-                        <input type="file" id="image2" accept="image/*" onchange="handleImageUpload(2, this)">
+                        <input type="file" id="image2" accept="image/*"
+                               aria-hidden="true" tabindex="-1"
+                               onchange="handleImageUpload(2, this)">
                     </div>
 
-                    <div class="image-upload-slot" onclick="document.getElementById('image3').click();">
+                    <div class="image-upload-slot"
+                         role="button" tabindex="0"
+                         aria-label="Upload image 3 — click or press Enter"
+                         onclick="document.getElementById('image3').click();"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('image3').click();}">
                         <div id="image3-preview-container">
                             <div class="image-label">Image 3</div>
-                            <div style="font-size: 24px; color: var(--gold); margin: 20px 0;">+</div>
-                            <div style="font-size: 11px; color: #888;">Click to upload</div>
+                            <div style="font-size:24px;color:var(--gold);margin:20px 0;" aria-hidden="true">+</div>
+                            <div style="font-size:11px;color:#888;">Click to upload</div>
                         </div>
-                        <input type="file" id="image3" accept="image/*" onchange="handleImageUpload(3, this)">
+                        <input type="file" id="image3" accept="image/*"
+                               aria-hidden="true" tabindex="-1"
+                               onchange="handleImageUpload(3, this)">
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <!-- Case Study Content -->
+        <!-- Case Study Content + Generate -->
         <div class="grid">
-            <!-- Challenge, Solution, Results -->
-            <div class="section">
-                <h2>Case Study Content</h2>
+
+            <section class="section" aria-labelledby="contentHeading">
+                <h2 id="contentHeading">Case Study Content</h2>
 
                 <div class="form-group">
-                    <label>Challenge (Bullet Points)</label>
-                    <textarea id="challenge" placeholder="• Key challenge 1&#10;• Key challenge 2&#10;• Key challenge 3"></textarea>
+                    <label for="challenge">Challenge (Bullet Points)</label>
+                    <textarea id="challenge"
+                              placeholder="• Key challenge 1&#10;• Key challenge 2&#10;• Key challenge 3"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Solution (Bullet Points)</label>
-                    <textarea id="solution" placeholder="• Solution element 1&#10;• Solution element 2&#10;• Solution element 3"></textarea>
+                    <label for="solution">Solution (Bullet Points)</label>
+                    <textarea id="solution"
+                              placeholder="• Solution element 1&#10;• Solution element 2&#10;• Solution element 3"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Results (Narrative)</label>
-                    <textarea id="results" placeholder="Describe the outcomes and impact of the project. What changed for the client?"></textarea>
+                    <label for="results">Results (Narrative)</label>
+                    <textarea id="results"
+                              placeholder="Describe the outcomes and impact of the project. What changed for the client?"></textarea>
                 </div>
-            </div>
+            </section>
 
-            <!-- Generate Button -->
-            <div class="section" style="display: flex; flex-direction: column; justify-content: flex-end;">
-                <div id="status" class="status"></div>
+            <section class="section" style="display:flex;flex-direction:column;justify-content:flex-end;"
+                     aria-labelledby="generateHeading">
+                <h2 id="generateHeading" class="sr-only">Generate</h2>
+                <div id="status" class="status" role="status" aria-live="polite"></div>
 
                 <div class="button-group">
-                    <button class="btn-primary" onclick="generateContent()">Generate Case Studies</button>
+                    <button class="btn-primary" onclick="generateContent()"
+                            aria-describedby="autosaveNote">
+                        Generate Case Studies
+                    </button>
                     <button class="btn-secondary" onclick="clearForm()">Clear</button>
                 </div>
 
-                <div style="margin-top: 20px; font-size: 12px; color: #888; text-align: center;">
+                <p id="autosaveNote" style="margin-top:20px;font-size:12px;color:#888;text-align:center;">
                     Your inputs are automatically saved locally
-                </div>
-            </div>
+                </p>
+            </section>
         </div>
 
         <!-- Output Section -->
-        <div class="output-section" id="outputSection" style="display: none;">
-            <h2 style="font-family: 'DM Serif Display', serif; margin-bottom: 30px;">Generated Content</h2>
+        <section class="output-section" id="outputSection" style="display:none;"
+                 aria-labelledby="outputHeading">
+            <h2 id="outputHeading" style="font-family:'DM Serif Display',serif;margin-bottom:30px;">
+                Generated Content
+            </h2>
 
-            <div class="tabs">
-                <button class="tab-button active" onclick="switchTab(event, 'carousel')">LinkedIn Carousel</button>
-                <button class="tab-button" onclick="switchTab(event, 'pdf')">Medium PDF</button>
-                <button class="tab-button" onclick="switchTab(event, 'longform')">Long Form Blog</button>
+            <div class="tabs" role="tablist" aria-label="Output formats">
+                <button class="tab-button" role="tab"
+                        id="tab-carousel" aria-selected="true" aria-controls="carousel"
+                        onclick="switchTab(event, 'carousel')">
+                    LinkedIn Carousel
+                </button>
+                <button class="tab-button" role="tab"
+                        id="tab-pdf" aria-selected="false" aria-controls="pdf"
+                        onclick="switchTab(event, 'pdf')">
+                    Medium PDF
+                </button>
+                <button class="tab-button" role="tab"
+                        id="tab-longform" aria-selected="false" aria-controls="longform"
+                        onclick="switchTab(event, 'longform')">
+                    Long Form Blog
+                </button>
             </div>
 
             <!-- Carousel Tab -->
-            <div id="carousel" class="tab-content active">
-                <div class="carousel-container">
-                    <div id="slide1" class="carousel-slide active">
+            <div id="carousel" class="tab-content active"
+                 role="tabpanel" aria-labelledby="tab-carousel" tabindex="-1">
+
+                <div class="carousel-container" aria-label="Slide preview">
+                    <div id="slide1" class="carousel-slide active" aria-hidden="false">
                         <div class="carousel-text">
-                            <h3 id="carouselTitle1">Slide Title</h3>
-                            <p id="carouselText1">Slide content</p>
+                            <h3>Slide Title</h3>
+                            <p>Slide content</p>
                         </div>
                     </div>
-                    <div id="slide2" class="carousel-slide">
+                    <div id="slide2" class="carousel-slide" aria-hidden="true">
                         <div class="carousel-text">
-                            <h3 id="carouselTitle2">Slide Title</h3>
-                            <p id="carouselText2">Slide content</p>
+                            <h3>Slide Title</h3>
+                            <p>Slide content</p>
                         </div>
                     </div>
-                    <div id="slide3" class="carousel-slide">
+                    <div id="slide3" class="carousel-slide" aria-hidden="true">
                         <div class="carousel-text">
-                            <h3 id="carouselTitle3">Slide Title</h3>
-                            <p id="carouselText3">Slide content</p>
+                            <h3>Slide Title</h3>
+                            <p>Slide content</p>
                         </div>
                     </div>
-                    <div id="slide4" class="carousel-slide">
+                    <div id="slide4" class="carousel-slide" aria-hidden="true">
                         <div class="carousel-text">
-                            <h3 id="carouselTitle4">Slide Title</h3>
-                            <p id="carouselText4">Slide content</p>
+                            <h3>Slide Title</h3>
+                            <p>Slide content</p>
                         </div>
                     </div>
-                    <div id="slide5" class="carousel-slide">
+                    <div id="slide5" class="carousel-slide" aria-hidden="true">
                         <div class="carousel-text">
-                            <h3 id="carouselTitle5">Slide Title</h3>
-                            <p id="carouselText5">Slide content</p>
+                            <h3>Slide Title</h3>
+                            <p>Slide content</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="carousel-controls">
-                    <div class="carousel-nav">
-                        <button onclick="prevSlide()">←</button>
-                        <button onclick="nextSlide()">→</button>
+                    <div class="carousel-nav" role="group" aria-label="Slide navigation">
+                        <button onclick="prevSlide()" aria-label="Previous slide">&#8592;</button>
+                        <button onclick="nextSlide()" aria-label="Next slide">&#8594;</button>
                     </div>
-                    <span class="carousel-counter"><span id="currentSlide">1</span> / 5</span>
+                    <span class="carousel-counter" aria-live="polite" aria-atomic="true">
+                        Slide <span id="currentSlide">1</span> of 5
+                    </span>
                 </div>
 
                 <div class="download-options">
-                    <button class="btn-secondary btn-small" onclick="downloadCarousel()">Download as Images</button>
-                    <button class="btn-secondary btn-small" onclick="copyCarouselText()">Copy Text</button>
+                    <button class="btn-secondary btn-small" onclick="downloadCarousel()">
+                        Download as Image
+                    </button>
+                    <button class="btn-secondary btn-small" onclick="copyCarouselText()">
+                        Copy Text
+                    </button>
                 </div>
             </div>
 
             <!-- PDF Tab -->
-            <div id="pdf" class="tab-content">
+            <div id="pdf" class="tab-content"
+                 role="tabpanel" aria-labelledby="tab-pdf" tabindex="-1" aria-hidden="true">
+
                 <div id="pdfContent" class="pdf-preview">
                     <div class="pdf-title" id="pdfTitle">Project Title</div>
                     <div class="pdf-meta" id="pdfMeta">Meta information</div>
@@ -845,7 +310,9 @@
             </div>
 
             <!-- Long Form Tab -->
-            <div id="longform" class="tab-content">
+            <div id="longform" class="tab-content"
+                 role="tabpanel" aria-labelledby="tab-longform" tabindex="-1" aria-hidden="true">
+
                 <div id="longformContent" class="longform-preview">
                     <div class="longform-header">
                         <div class="longform-title" id="longformTitle">Project Title</div>
@@ -859,506 +326,10 @@
                     <button class="btn-secondary btn-small" onclick="copyLongFormHtml()">Copy HTML</button>
                 </div>
             </div>
-        </div>
+
+        </section>
     </div>
 
-    <script>
-        const STORAGE_KEY = 'kecCaseStudy';
-        const API_KEY_STORAGE = 'kecApiKey';
-        let currentSlide = 1;
-        let generatedContent = null;
-        let images = [null, null, null];
-
-        function getApiKey() {
-            return document.getElementById('apiKeyInput').value.trim();
-        }
-
-        function saveApiKey(value) {
-            if (value.trim()) {
-                localStorage.setItem(API_KEY_STORAGE, value.trim());
-            } else {
-                localStorage.removeItem(API_KEY_STORAGE);
-            }
-        }
-
-        function esc(str) {
-            return String(str || '')
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast toast-${type} show`;
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => {
-                toast.className = `toast toast-${type}`;
-            }, 3000);
-        }
-
-        function extractJSON(text) {
-            try { return JSON.parse(text); } catch {}
-            const start = text.indexOf('{');
-            const end = text.lastIndexOf('}');
-            if (start !== -1 && end > start) {
-                return JSON.parse(text.slice(start, end + 1));
-            }
-            throw new Error('Could not parse AI response');
-        }
-
-        // Storage Management
-        function saveToStorage() {
-            const data = {
-                clientName: document.getElementById('clientName').value,
-                projectTitle: document.getElementById('projectTitle').value,
-                projectType: document.getElementById('projectType').value,
-                projectSize: document.getElementById('projectSize').value,
-                location: document.getElementById('location').value,
-                kwhGeneration: document.getElementById('kwhGeneration').value,
-                carbonSavings: document.getElementById('carbonSavings').value,
-                financialSavings: document.getElementById('financialSavings').value,
-                completionDate: document.getElementById('completionDate').value,
-                customerName: document.getElementById('customerName').value,
-                customerRole: document.getElementById('customerRole').value,
-                customerQuote: document.getElementById('customerQuote').value,
-                supplierName: document.getElementById('supplierName').value,
-                supplierRole: document.getElementById('supplierRole').value,
-                supplierQuote: document.getElementById('supplierQuote').value,
-                challenge: document.getElementById('challenge').value,
-                solution: document.getElementById('solution').value,
-                results: document.getElementById('results').value,
-                images: images
-            };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        function loadFromStorage() {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const data = JSON.parse(stored);
-                document.getElementById('clientName').value = data.clientName || '';
-                document.getElementById('projectTitle').value = data.projectTitle || '';
-                document.getElementById('projectType').value = data.projectType || '';
-                document.getElementById('projectSize').value = data.projectSize || '';
-                document.getElementById('location').value = data.location || '';
-                document.getElementById('kwhGeneration').value = data.kwhGeneration || '';
-                document.getElementById('carbonSavings').value = data.carbonSavings || '';
-                document.getElementById('financialSavings').value = data.financialSavings || '';
-                document.getElementById('completionDate').value = data.completionDate || '';
-                document.getElementById('customerName').value = data.customerName || '';
-                document.getElementById('customerRole').value = data.customerRole || '';
-                document.getElementById('customerQuote').value = data.customerQuote || '';
-                document.getElementById('supplierName').value = data.supplierName || '';
-                document.getElementById('supplierRole').value = data.supplierRole || '';
-                document.getElementById('supplierQuote').value = data.supplierQuote || '';
-                document.getElementById('challenge').value = data.challenge || '';
-                document.getElementById('solution').value = data.solution || '';
-                document.getElementById('results').value = data.results || '';
-
-                if (data.images) {
-                    images = data.images;
-                    for (let i = 0; i < 3; i++) {
-                        if (images[i]) {
-                            displayImagePreview(i + 1, images[i]);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Image Handling
-        function handleImageUpload(slotNum, input) {
-            const file = input.files[0];
-            if (!file) return;
-            const MAX_BYTES = 2 * 1024 * 1024;
-            if (file.size > MAX_BYTES) {
-                showToast('Image must be under 2 MB', 'error');
-                input.value = '';
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                images[slotNum - 1] = e.target.result;
-                displayImagePreview(slotNum, e.target.result);
-                saveToStorage();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function displayImagePreview(slotNum, base64) {
-            const container = document.getElementById(`image${slotNum}-preview-container`);
-            container.innerHTML = `
-                <img src="${base64}" class="image-preview">
-                <span class="remove-image" onclick="removeImage(${slotNum})">Remove</span>
-            `;
-        }
-
-        function removeImage(slotNum) {
-            images[slotNum - 1] = null;
-            const container = document.getElementById(`image${slotNum}-preview-container`);
-            container.innerHTML = `
-                <div class="image-label">Image ${slotNum}</div>
-                <div style="font-size: 24px; color: var(--gold); margin: 20px 0;">+</div>
-                <div style="font-size: 11px; color: #888;">Click to upload</div>
-            `;
-            document.getElementById(`image${slotNum}`).value = '';
-            saveToStorage();
-        }
-
-        // Event listeners for auto-save
-        document.querySelectorAll('input, select, textarea').forEach(el => {
-            el.addEventListener('change', saveToStorage);
-        });
-
-        // Generate Content
-        async function generateContent() {
-            const apiKey = getApiKey();
-            if (!apiKey) {
-                showStatus('Please enter your Anthropic API key above', 'error');
-                document.getElementById('apiKeyInput').focus();
-                return;
-            }
-
-            const clientName = document.getElementById('clientName').value.trim();
-            const projectTitle = document.getElementById('projectTitle').value.trim();
-            const challenge = document.getElementById('challenge').value.trim();
-            const solution = document.getElementById('solution').value.trim();
-            const results = document.getElementById('results').value.trim();
-
-            if (!clientName || !projectTitle || !challenge || !solution || !results) {
-                showStatus('Please fill in all required fields', 'error');
-                return;
-            }
-
-            const btn = document.querySelector('.btn-primary');
-            btn.disabled = true;
-            showStatus('Generating your case studies…', 'loading');
-
-            try {
-                const prompt = buildPrompt();
-                const response = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey,
-                        'anthropic-version': '2023-06-01',
-                        'anthropic-dangerous-request-proxy': 'true'
-                    },
-                    body: JSON.stringify({
-                        model: 'claude-sonnet-4-5',
-                        max_tokens: 3000,
-                        messages: [{ role: 'user', content: prompt }]
-                    })
-                });
-
-                if (!response.ok) {
-                    const err = await response.json().catch(() => ({}));
-                    throw new Error(err.error?.message || response.statusText);
-                }
-
-                const data = await response.json();
-                const generatedText = data.content[0].text;
-                generatedContent = extractJSON(generatedText);
-
-                renderContent();
-                document.getElementById('outputSection').style.display = 'block';
-                showStatus('Case studies generated successfully!', 'success');
-                window.scrollTo({ top: document.getElementById('outputSection').offsetTop, behavior: 'smooth' });
-            } catch (error) {
-                console.error('Generation error:', error);
-                showStatus(`Error: ${error.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
-        function buildPrompt() {
-            const data = {
-                clientName: document.getElementById('clientName').value,
-                projectTitle: document.getElementById('projectTitle').value,
-                projectType: document.getElementById('projectType').value,
-                projectSize: document.getElementById('projectSize').value,
-                location: document.getElementById('location').value,
-                kwhGeneration: document.getElementById('kwhGeneration').value,
-                carbonSavings: document.getElementById('carbonSavings').value,
-                financialSavings: document.getElementById('financialSavings').value,
-                completionDate: document.getElementById('completionDate').value,
-                customerName: document.getElementById('customerName').value,
-                customerRole: document.getElementById('customerRole').value,
-                customerQuote: document.getElementById('customerQuote').value,
-                supplierName: document.getElementById('supplierName').value,
-                supplierRole: document.getElementById('supplierRole').value,
-                supplierQuote: document.getElementById('supplierQuote').value,
-                challenge: document.getElementById('challenge').value,
-                solution: document.getElementById('solution').value,
-                results: document.getElementById('results').value
-            };
-
-            return `You are a professional case study writer for Kinetic Energy Consulting (KEC), a UK energy consulting firm specializing in solar installations and LED retrofits.
-
-Your task is to generate three versions of a B2B case study from the following information:
-
-PROJECT DATA:
-- Client: ${data.clientName}
-- Title: ${data.projectTitle}
-- Type: ${data.projectType}
-- Size: ${data.projectSize}
-- Location: ${data.location}
-- Annual kWh: ${data.kwhGeneration}
-- Carbon Savings: ${data.carbonSavings} tonnes CO₂
-- Annual Savings: £${data.financialSavings}
-- Completion: ${data.completionDate}
-
-CHALLENGE (bullet points to expand):
-${data.challenge}
-
-SOLUTION (bullet points to expand):
-${data.solution}
-
-RESULTS (narrative to refine):
-${data.results}
-
-STAKEHOLDERS:
-Customer: ${data.customerName}, ${data.customerRole}
-Quote: "${data.customerQuote}"
-Supplier: ${data.supplierName}, ${data.supplierRole}
-Quote: "${data.supplierQuote}"
-
-Create a JSON response with this exact structure:
-
-{
-  "carousel": [
-    {"title": "Slide 1: Intro", "text": "Brief intro text (max 50 words)"},
-    {"title": "Slide 2: Challenge", "text": "Challenge summary (max 50 words)"},
-    {"title": "Slide 3: Solution", "text": "Solution summary (max 50 words)"},
-    {"title": "Slide 4: Results", "text": "Results summary (max 50 words)"},
-    {"title": "Slide 5: CTA", "text": "Call to action (max 50 words)"}
-  ],
-  "pdfShort": {
-    "title": "${data.projectTitle}",
-    "challenge": "2-3 sentences expanding the bullet points",
-    "solution": "2-3 sentences expanding the bullet points",
-    "results": "2-3 sentences summarizing outcomes"
-  },
-  "longForm": {
-    "title": "${data.projectTitle}",
-    "intro": "150-200 word introduction",
-    "challenge": "200-250 word challenge section",
-    "solution": "250-300 word solution section",
-    "results": "200-250 word results section with narrative and metrics"
-  }
-}
-
-Important guidelines:
-- For carousel: Use punchy, LinkedIn-friendly language
-- For PDF: Professional but concise, include specific metrics
-- For long form: Up to 1000 words total, narrative style, weave in quotes naturally if provided
-- If quotes exist, integrate them organically into the prose, not as separate blocks
-- Tone: professional, confident, results-focused
-- Always emphasize measurable outcomes (kWh, savings, CO₂)
-- Use UK English spelling (realise, organisation, etc.)
-
-Return ONLY valid JSON, no markdown or preamble.`;
-        }
-
-        function buildSlide(slideEl, slide, imageBase64) {
-            slideEl.innerHTML = '';
-            if (imageBase64) {
-                const img = document.createElement('img');
-                img.src = imageBase64;
-                img.alt = '';
-                slideEl.appendChild(img);
-            }
-            const textDiv = document.createElement('div');
-            textDiv.className = 'carousel-text';
-            const h3 = document.createElement('h3');
-            h3.textContent = slide.title;
-            const p = document.createElement('p');
-            p.textContent = slide.text;
-            textDiv.appendChild(h3);
-            textDiv.appendChild(p);
-            slideEl.appendChild(textDiv);
-        }
-
-        function renderContent() {
-            if (!generatedContent) return;
-
-            // Carousel — use DOM API to avoid XSS
-            generatedContent.carousel.forEach((slide, i) => {
-                const slideEl = document.getElementById(`slide${i + 1}`);
-                buildSlide(slideEl, slide, i < 3 ? images[i] : null);
-            });
-
-            // PDF — form field values escaped, AI content trusted via innerHTML
-            document.getElementById('pdfTitle').textContent = generatedContent.pdfShort.title;
-            document.getElementById('pdfMeta').innerHTML =
-                `<strong>${esc(document.getElementById('projectType').value)}</strong> | ` +
-                `${esc(document.getElementById('location').value)} | ` +
-                `${esc(document.getElementById('completionDate').value)}`;
-
-            let pdfBody = '';
-            if (images[0]) pdfBody += `<img src="${images[0]}" class="pdf-image" alt="">`;
-            pdfBody += `<div class="pdf-section"><h3>Challenge</h3><p>${generatedContent.pdfShort.challenge}</p></div>`;
-            pdfBody += `<div class="pdf-section"><h3>Solution</h3><p>${generatedContent.pdfShort.solution}</p></div>`;
-            if (images[1]) pdfBody += `<img src="${images[1]}" class="pdf-image" alt="">`;
-            pdfBody += `<div class="pdf-section"><h3>Results</h3><p>${generatedContent.pdfShort.results}</p></div>`;
-            if (images[2]) pdfBody += `<img src="${images[2]}" class="pdf-image" alt="">`;
-
-            const metrics = [];
-            if (document.getElementById('kwhGeneration').value)
-                metrics.push(`${esc(document.getElementById('kwhGeneration').value)} kWh/year`);
-            if (document.getElementById('carbonSavings').value)
-                metrics.push(`${esc(document.getElementById('carbonSavings').value)}t CO₂ saved`);
-            if (document.getElementById('financialSavings').value)
-                metrics.push(`£${esc(document.getElementById('financialSavings').value)}/year`);
-            if (metrics.length > 0) {
-                pdfBody += `<div class="pdf-section" style="background:var(--light-slate);padding:15px;border-radius:4px;">` +
-                    `<strong>Key Metrics:</strong> ${metrics.join(' • ')}</div>`;
-            }
-            document.getElementById('pdfBody').innerHTML = pdfBody;
-
-            // Long Form — form field values escaped, AI content trusted via innerHTML
-            document.getElementById('longformTitle').textContent = generatedContent.longForm.title;
-            document.getElementById('longformMeta').innerHTML =
-                `<div><strong>Project Type:</strong> ${esc(document.getElementById('projectType').value)}</div>` +
-                `<div><strong>Location:</strong> ${esc(document.getElementById('location').value)}</div>` +
-                `<div><strong>Size:</strong> ${esc(document.getElementById('projectSize').value)}</div>` +
-                `<div><strong>Completion:</strong> ${esc(document.getElementById('completionDate').value)}</div>`;
-
-            let longformBody = '';
-            if (images[0]) longformBody += `<img src="${images[0]}" class="longform-image" alt="">`;
-            longformBody += `<p><strong>Overview</strong></p><p>${generatedContent.longForm.intro}</p>`;
-            longformBody += `<h3>The Challenge</h3><p>${generatedContent.longForm.challenge}</p>`;
-            if (images[1]) longformBody += `<img src="${images[1]}" class="longform-image" alt="">`;
-            longformBody += `<h3>Our Solution</h3><p>${generatedContent.longForm.solution}</p>`;
-            if (images[2]) longformBody += `<img src="${images[2]}" class="longform-image" alt="">`;
-            longformBody += `<h3>Results &amp; Impact</h3><p>${generatedContent.longForm.results}</p>`;
-            document.getElementById('longformBody').innerHTML = longformBody;
-        }
-
-        // UI Functions
-        function switchTab(event, tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function nextSlide() {
-            currentSlide = currentSlide === 5 ? 1 : currentSlide + 1;
-            updateSlide();
-        }
-
-        function prevSlide() {
-            currentSlide = currentSlide === 1 ? 5 : currentSlide - 1;
-            updateSlide();
-        }
-
-        function updateSlide() {
-            document.querySelectorAll('.carousel-slide').forEach(el => el.classList.remove('active'));
-            document.getElementById(`slide${currentSlide}`).classList.add('active');
-            document.getElementById('currentSlide').textContent = currentSlide;
-        }
-
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = `status ${type}`;
-        }
-
-        function clearForm() {
-            if (confirm('Clear all inputs? This cannot be undone.')) {
-                document.querySelectorAll('input, select, textarea').forEach(el => el.value = '');
-                images = [null, null, null];
-                for (let i = 1; i <= 3; i++) {
-                    removeImage(i);
-                }
-                localStorage.removeItem(STORAGE_KEY);
-                showStatus('', '');
-                document.getElementById('outputSection').style.display = 'none';
-            }
-        }
-
-        // Download Functions
-        function downloadPDF() {
-            const element = document.getElementById('pdfContent');
-            const opt = {
-                margin: 10,
-                filename: `${document.getElementById('projectTitle').value || 'case-study'}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
-            };
-            html2pdf().set(opt).from(element).save();
-        }
-
-        function copyPdfHtml() {
-            const html = document.getElementById('pdfContent').innerHTML;
-            navigator.clipboard.writeText(html).then(() => {
-                showToast('HTML copied to clipboard', 'success');
-            });
-        }
-
-        function downloadLongForm() {
-            const html = `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>${document.getElementById('longformTitle').textContent}</title>
-    <style>
-        body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px 20px; color: #333; }
-        h1 { font-size: 32px; margin-bottom: 20px; }
-        h3 { font-size: 20px; margin-top: 30px; margin-bottom: 15px; color: #C97C3A; }
-        p { line-height: 1.8; margin-bottom: 15px; }
-        .meta { color: #888; font-size: 14px; margin-bottom: 30px; border-bottom: 1px solid #ddd; padding-bottom: 20px; }
-        img { max-width: 100%; height: auto; margin: 30px 0; }
-    </style>
-</head>
-<body>
-    <h1>${document.getElementById('longformTitle').textContent}</h1>
-    <div class="meta">${document.getElementById('longformMeta').innerHTML}</div>
-    ${document.getElementById('longformBody').innerHTML}
-</body>
-</html>`;
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${document.getElementById('projectTitle').value || 'case-study'}.html`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function copyLongFormHtml() {
-            const html = document.getElementById('longformContent').innerHTML;
-            navigator.clipboard.writeText(html).then(() => {
-                showToast('HTML copied to clipboard', 'success');
-            });
-        }
-
-        function downloadCarousel() {
-            showToast('Carousel image download coming soon — screenshot each slide or use Copy Text for now.', 'info');
-        }
-
-        function copyCarouselText() {
-            let text = '';
-            generatedContent.carousel.forEach((slide, i) => {
-                text += `Slide ${i + 1}: ${slide.title}\n${slide.text}\n\n`;
-            });
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Carousel text copied to clipboard', 'success');
-            });
-        }
-
-        // Load saved data on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            loadFromStorage();
-            const storedKey = localStorage.getItem(API_KEY_STORAGE);
-            if (storedKey) document.getElementById('apiKeyInput').value = storedKey;
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
