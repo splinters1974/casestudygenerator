@@ -76,10 +76,13 @@ function saveToStorage() {
         challenge: document.getElementById('challenge').value,
         solution: document.getElementById('solution').value,
         results: document.getElementById('results').value,
-        images: images,
         generatedContent: generatedContent
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+        // Storage quota exceeded — silently continue; images are not persisted
+    }
 }
 
 function loadFromStorage() {
@@ -98,12 +101,6 @@ function loadFromStorage() {
             const el = document.getElementById(id);
             if (el) el.value = data[id] || '';
         });
-        if (data.images) {
-            images = data.images;
-            for (let i = 0; i < 3; i++) {
-                if (images[i]) displayImagePreview(i + 1, images[i]);
-            }
-        }
         if (data.generatedContent) {
             generatedContent = data.generatedContent;
             renderContent();
@@ -197,18 +194,14 @@ async function generateContent() {
 
     try {
         const prompt = buildPrompt();
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch('/.netlify/functions/generate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-request-proxy': 'true'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                prompt,
                 model: 'claude-sonnet-4-5',
-                max_tokens: 3000,
-                messages: [{ role: 'user', content: prompt }]
+                maxTokens: 3000,
+                apiKey
             })
         });
 
