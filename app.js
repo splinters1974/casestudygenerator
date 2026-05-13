@@ -6,7 +6,7 @@ let images = [null, null, null];
 let clearPending = false;
 let clearTimer = null;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────────────────
 
 function getApiKey() {
     return document.getElementById('apiKeyInput').value.trim();
@@ -54,7 +54,7 @@ function extractJSON(text) {
     throw new Error('Could not parse AI response');
 }
 
-// ── Storage ───────────────────────────────────────────────────────────────────
+// ── Storage ───────────────────────────────────────────────────────────────────────────
 
 function saveToStorage() {
     const data = {
@@ -76,10 +76,13 @@ function saveToStorage() {
         challenge: document.getElementById('challenge').value,
         solution: document.getElementById('solution').value,
         results: document.getElementById('results').value,
-        images: images,
         generatedContent: generatedContent
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+        // Storage quota exceeded — silently continue; images are not persisted
+    }
 }
 
 function loadFromStorage() {
@@ -98,12 +101,6 @@ function loadFromStorage() {
             const el = document.getElementById(id);
             if (el) el.value = data[id] || '';
         });
-        if (data.images) {
-            images = data.images;
-            for (let i = 0; i < 3; i++) {
-                if (images[i]) displayImagePreview(i + 1, images[i]);
-            }
-        }
         if (data.generatedContent) {
             generatedContent = data.generatedContent;
             renderContent();
@@ -117,7 +114,7 @@ function loadFromStorage() {
     updateFocusField();
 }
 
-// ── Image Handling ────────────────────────────────────────────────────────────
+// ── Image Handling ────────────────────────────────────────────────────────────────────
 
 function handleImageUpload(slotNum, input) {
     const file = input.files[0];
@@ -170,7 +167,7 @@ function removeImage(slotNum) {
     saveToStorage();
 }
 
-// ── Generation ────────────────────────────────────────────────────────────────
+// ── Generation ──────────────────────────────────────────────────────────────────────────
 
 async function generateContent() {
     const apiKey = getApiKey();
@@ -197,18 +194,14 @@ async function generateContent() {
 
     try {
         const prompt = buildPrompt();
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch('/.netlify/functions/generate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01',
-                'anthropic-dangerous-request-proxy': 'true'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+                prompt,
                 model: 'claude-sonnet-4-5',
-                max_tokens: 3000,
-                messages: [{ role: 'user', content: prompt }]
+                maxTokens: 3000,
+                apiKey
             })
         });
 
@@ -418,7 +411,7 @@ Return ONLY valid JSON with no markdown or preamble:
 }`;
 }
 
-// ── Rendering ─────────────────────────────────────────────────────────────────
+// ── Rendering ───────────────────────────────────────────────────────────────────────────
 
 function buildSlide(slideEl, slide, imageBase64) {
     slideEl.innerHTML = '';
@@ -494,7 +487,7 @@ function renderContent() {
     document.getElementById('longformBody').innerHTML = longformBody;
 }
 
-// ── UI ────────────────────────────────────────────────────────────────────────
+// ── UI ────────────────────────────────────────────────────────────────────────────────
 
 function switchTab(event, tabName) {
     document.querySelectorAll('.tab-content').forEach(el => {
@@ -558,7 +551,7 @@ function clearForm() {
     }
 }
 
-// ── Downloads ─────────────────────────────────────────────────────────────────
+// ── Downloads ─────────────────────────────────────────────────────────────────────────
 
 function downloadPDF() {
     const element = document.getElementById('pdfContent');
@@ -647,7 +640,7 @@ function copyLongFormHtml() {
     });
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ────────────────────────────────────────────────────────────────────────────────
 
 document.querySelectorAll('input, select, textarea').forEach(el => {
     el.addEventListener('change', saveToStorage);
